@@ -1,2 +1,2 @@
--r ./base.txt
+-r ./ci.txt
 pytest==3.0.5
