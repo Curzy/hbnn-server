@@ -14,9 +14,7 @@ dependencies:
 
 test:
   override:
-    - flake8:
-        files:
-          - "**/*.py"
+    - flake8 --config .flake8
 
   post:
     - pytest 

@@ -8,7 +8,8 @@ from django.views import View
 class ApiView(View):
 
     @staticmethod
-    def response(data: dict={}, status_code: int=200, message: typing.Union[str, None]=None) -> JsonResponse:
+    def response(data: dict={}, status_code: int=200,
+                 message: typing.Union[str, None]=None) -> JsonResponse:
         payload = {
             'status': 'success' if status_code < 400 else 'error',
             'data': data,
@@ -26,4 +27,3 @@ class PingView(ApiView):
         cursor.execute('''SELECT 1''')
         assert cursor.fetchone()[0] == 1
         return self.response(message="PONG")
-
