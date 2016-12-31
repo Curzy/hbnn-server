@@ -13,5 +13,10 @@ dependencies:
     - pip install -r requirements/ci.txt
 
 test:
+  override:
+    - flake8:
+        files:
+          - "**/*.py"
+
   post:
     - pytest 
