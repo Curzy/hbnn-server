@@ -6,7 +6,7 @@ machine:
     Asia/Seoul
 
   post:
-    - pyenv gloabl 3.6.0
+    - pyenv global 3.6.0
 
 dependencies:
   cache_directories:
