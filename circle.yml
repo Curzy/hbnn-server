@@ -5,12 +5,15 @@ machine:
   timezone:
     Asia/Seoul
 
+  post:
+    - pyenv gloabl 3.6.0
+
 dependencies:
   cache_directories:
     - ~/virtualenvs
 
   pre:
-    - cd ~/virtualenvs; virtualenv hbnn; source bin/activate; cd ~/hbnn; pip install -r requirements/ci.txt
+    - pip install -r requirements/ci.txt
 
 test:
   override:
