@@ -1,6 +1,8 @@
 machine:
   pre:
     - cd /opt/circleci/.pyenv; git pull; cd ~
+    - pyenv install 3.6.0
+    - pyenv global 3.6.0
 
   timezone:
     Asia/Seoul
@@ -10,8 +12,6 @@ dependencies:
     - /opt/circleci/.pyenv/versions/
 
   pre:
-    - pyenv install 3.6.0
-    - pyenv global 3.6.0
     - pip install -r requirements/ci.txt
 
 test:
