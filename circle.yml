@@ -5,15 +5,15 @@ machine:
   timezone:
     Asia/Seoul
 
-  post:
-    - pyenv global 3.6.0
+  python:
+    version: 3.6.0
 
 dependencies:
   cache_directories:
     - ~/virtualenvs
 
   pre:
-    - pip install -r requirements/ci.txt
+    - pyenv global 3.6.0; cd ~/virtualenvs; virtualenv hbnn; source bin/activate; cd ~/hbnn; pip install -r requirements/ci.txt
 
 test:
   override:
