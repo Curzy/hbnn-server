@@ -10,10 +10,10 @@ machine:
 
 dependencies:
   cache_directories:
-    - ~/virtualenvs
+    - /opt/circleci/.pyenv/versions/
 
   pre:
-    - pyenv global 3.6.0; cd ~/virtualenvs; virtualenv hbnn; source bin/activate; cd ~/hbnn; pip install -r requirements/ci.txt
+    - pip install -r requirements/ci.txt
 
 test:
   override:
