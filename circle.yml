@@ -9,12 +9,13 @@ machine:
     version: 3.6.0
 
 dependencies:
+  cache_directories:
+    - ~/virtualenvs
+
   pre:
     - pip install -r requirements/ci.txt
 
 test:
   override:
     - flake8 --config .flake8
-
-  post:
     - pytest 
