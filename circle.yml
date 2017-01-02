@@ -1,7 +1,4 @@
 machine:
-  pre:
-    - cd ~/virtualenvs; virtualenv hbnn; source bin/activate;
-
   timezone:
     Asia/Seoul
 
@@ -13,7 +10,7 @@ dependencies:
     - ~/virtualenvs
 
   pre:
-    - pip install -r requirements/ci.txt
+    - cd ~/virtualenvs; virtualenv hbnn; source bin/activate; pip install -r requirements/ci.txt
 
 test:
   override:
