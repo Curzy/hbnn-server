@@ -5,14 +5,13 @@ machine:
   timezone:
     Asia/Seoul
 
-  python:
-    version: 3.6.0
-
 dependencies:
   cache_directories:
     - /opt/circleci/.pyenv/versions/
 
   pre:
+    - pyenv install 3.6.0
+    - pyenv gloabl 3.6.0
     - pip install -r requirements/ci.txt
 
 test:
