@@ -2,8 +2,10 @@ import json
 
 from django.test import LiveServerTestCase, TestCase
 from django.urls import reverse
+from urllib.parse import urljoin, urlencode
 
-from .views import ApiView
+from .views import APIView
+from user.models import HBNNUser
 
 
 class ApiViewTestCase(TestCase):
@@ -38,7 +40,7 @@ class ApiViewTestCase(TestCase):
 
         for case in test_cases:
             args, expect = case
-            response = ApiView.response(*args)
+            response = APIView.response(*args)
             self.assertEqual(json.loads(response.content), expect)
 
             status_code = args[1] \
@@ -61,3 +63,110 @@ class PingViewTestCase(LiveServerTestCase):
             }
         )
         self.assertEqual(response.status_code, 200)
+
+
+class UserAPITestCase(LiveServerTestCase):
+    url = reverse('user_api')
+
+    email = 'test@test.com'
+    username = 'test'
+    password = 'test'
+
+    def test_api_user_create(self):
+        url = self.url
+
+        email = self.email
+        username = self.username
+        password = self.password
+
+        response = self.client.post(url,
+                                    {
+                                        'email': email,
+                                        'username': username,
+                                        'password': password
+                                    })
+
+        self.assertEqual(response.json().get('status'), 'success')
+        data = response.json().get('data')
+        self.assertEqual(data.get('email'), email)
+        self.assertEqual(data.get('username'), username)
+
+    def test_api_user_read_all(self):
+        url = self.url
+
+        response = self.client.get(url)
+        self.assertEqual(
+            response.json(),
+            {
+                'status': 'success',
+                'data': [],
+                'message': None
+            }
+        )
+
+    def test_api_user_read_by_uuid(self):
+        url = self.url
+
+        email = self.email
+        username = self.username
+        password = self.password
+
+        HBNNUser.objects.create_user(email,
+                                     username,
+                                     password)
+        user = HBNNUser.objects.get(email=email)
+        user_id = str(user.id)
+
+        response = self.client.get(urljoin(url, '/'.join([user_id, ''])))
+        self.assertEqual(response.json().get('status'), 'success')
+        data = response.json().get('data')
+        self.assertEqual(data.get('email'), email)
+        self.assertEqual(data.get('username'), username)
+        self.assertEqual(data.get('id'), user_id)
+
+    def test_api_user_update(self):
+        url = self.url
+
+        email = self.email
+        username = self.username
+        password = self.password
+
+        new_username = 'test2'
+        new_password = 'test2'
+        HBNNUser.objects.create_user(email,
+                                     username,
+                                     password)
+        user = HBNNUser.objects.get(email=email)
+        user_id = str(user.id)
+
+        parameter = {
+            'username': new_username,
+            'password': new_password
+        }
+        response = self.client.put(urljoin(url, '/'.join([user_id, ''])),
+                                   data=urlencode(parameter))
+        self.assertEqual(response.json().get('status'), 'success')
+        data = response.json().get('data')
+        self.assertEqual(data.get('email'), email)
+        self.assertEqual(data.get('username'), new_username)
+        self.assertEqual(data.get('id'), user_id)
+        user = HBNNUser.objects.get(email=email)
+        self.assertTrue(user.check_password(new_password))
+
+    def test_api_user_delete(self):
+        url = self.url
+
+        email = self.email
+        username = self.username
+        password = self.password
+
+        HBNNUser.objects.create_user(email,
+                                     username,
+                                     password)
+        user = HBNNUser.objects.get(email=email)
+        user_id = str(user.id)
+
+        response = self.client.delete(urljoin(url, '/'.join([user_id, ''])))
+        self.assertEqual(0, HBNNUser.objects.filter(id=user_id).count())
+        self.assertEqual(response.json().get('message'),
+                         'Successfully deleted')
