@@ -2,7 +2,7 @@ import uuid
 
 from django.test import TestCase
 
-from .models import HBNNUser
+from .models import User
 
 
 class HBBNUserTestCase(TestCase):
@@ -12,10 +12,10 @@ class HBBNUserTestCase(TestCase):
         username = 'test'
         password = 'test'
 
-        HBNNUser.objects.create_user(email,
-                                     username,
-                                     password)
-        user = HBNNUser.objects.get(email=email)
+        User.objects.create_user(email,
+                                 username,
+                                 password)
+        user = User.objects.get(email=email)
 
         self.assertTrue(isinstance(user.id, uuid.UUID))
         self.assertEqual(user.email, email)

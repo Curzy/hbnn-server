@@ -5,7 +5,7 @@ from django.db import connection
 from django.http import JsonResponse, QueryDict
 from django.views import View
 
-from user.models import HBNNUser
+from user.models import User
 
 
 class APIView(View):
@@ -40,9 +40,9 @@ class UserAPIView(APIView):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = HBNNUser.objects.create_user(email,
-                                            username,
-                                            password)
+        user = User.objects.create_user(email,
+                                        username,
+                                        password)
 
         data = {
             'id': user.id,
@@ -55,7 +55,7 @@ class UserAPIView(APIView):
 
     def get(self, request, user_id: uuid.UUID = None) -> JsonResponse:
         if user_id:
-            user = HBNNUser.objects.get(id=user_id)
+            user = User.objects.get(id=user_id)
             data = {
                 'id': user.id,
                 'username': user.username,
@@ -64,8 +64,8 @@ class UserAPIView(APIView):
             }
 
         else:
-            users = HBNNUser.objects.values_list('id', 'username',
-                                                 'email', 'created_at')
+            users = User.objects.values_list('id', 'username',
+                                             'email', 'created_at')
             data = [
                 {
                     'id': id_,
@@ -78,7 +78,7 @@ class UserAPIView(APIView):
         return self.response(data=data)
 
     def put(self, request, user_id: uuid.UUID) -> JsonResponse:
-        user = HBNNUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
 
         parameters = QueryDict(request.body)
         new_username = parameters.get('username')
@@ -101,7 +101,7 @@ class UserAPIView(APIView):
         return self.response(data=data)
 
     def delete(self, request, user_id: uuid.UUID) -> JsonResponse:
-        user = HBNNUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
 
         user.delete()
         return self.response(data={}, message='Successfully deleted')

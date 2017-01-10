@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
-class HBNNUserManager(BaseUserManager):
+class UserManager(BaseUserManager):
     def create_user(self, email: str, username: str, password: str=None):
         user = self.model(
             email=self.normalize_email(email),
@@ -15,8 +15,8 @@ class HBNNUserManager(BaseUserManager):
         return user
 
 
-class HBNNUser(AbstractBaseUser):
-    objects = HBNNUserManager()
+class User(AbstractBaseUser):
+    objects = UserManager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

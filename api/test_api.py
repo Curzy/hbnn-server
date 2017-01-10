@@ -5,7 +5,7 @@ from django.urls import reverse
 from urllib.parse import urljoin, urlencode
 
 from .views import APIView
-from user.models import HBNNUser
+from user.models import User
 
 
 class ApiViewTestCase(TestCase):
@@ -111,10 +111,10 @@ class UserAPITestCase(LiveServerTestCase):
         username = self.username
         password = self.password
 
-        HBNNUser.objects.create_user(email,
-                                     username,
-                                     password)
-        user = HBNNUser.objects.get(email=email)
+        User.objects.create_user(email,
+                                 username,
+                                 password)
+        user = User.objects.get(email=email)
         user_id = str(user.id)
 
         url = urljoin(base_url, '/'.join([user_id, '']))
@@ -135,10 +135,10 @@ class UserAPITestCase(LiveServerTestCase):
 
         new_username = 'test2'
         new_password = 'test2'
-        HBNNUser.objects.create_user(email,
-                                     username,
-                                     password)
-        user = HBNNUser.objects.get(email=email)
+        User.objects.create_user(email,
+                                 username,
+                                 password)
+        user = User.objects.get(email=email)
         user_id = str(user.id)
 
         url = urljoin(base_url, '/'.join([user_id, '']))
@@ -155,7 +155,7 @@ class UserAPITestCase(LiveServerTestCase):
         self.assertEqual(data.get('email'), email)
         self.assertEqual(data.get('username'), new_username)
         self.assertEqual(data.get('id'), user_id)
-        user = HBNNUser.objects.get(email=email)
+        user = User.objects.get(email=email)
         self.assertTrue(user.check_password(new_password))
 
     def test_api_user_delete(self):
@@ -165,13 +165,13 @@ class UserAPITestCase(LiveServerTestCase):
         username = self.username
         password = self.password
 
-        HBNNUser.objects.create_user(email,
-                                     username,
-                                     password)
-        user = HBNNUser.objects.get(email=email)
+        User.objects.create_user(email,
+                                 username,
+                                 password)
+        user = User.objects.get(email=email)
         user_id = str(user.id)
 
         response = self.client.delete(urljoin(url, '/'.join([user_id, ''])))
-        self.assertEqual(0, HBNNUser.objects.filter(id=user_id).count())
+        self.assertEqual(0, User.objects.filter(id=user_id).count())
         self.assertEqual(response.json().get('message'),
                          'Successfully deleted')
