@@ -11,8 +11,8 @@ from user.models import HBNNUser
 class APIView(View):
 
     @staticmethod
-    def response(data: typing.Union[dict, list]={}, status_code: int=200,
-                 message: typing.Union[str, None]=None) -> JsonResponse:
+    def response(data: typing.Optional[dict, list], status_code: int = 200,
+                 message: typing.Optional[str] = None) -> JsonResponse:
         payload = {
             'status': 'success' if status_code < 400 else 'error',
             'data': data,
@@ -35,12 +35,9 @@ class PingView(APIView):
 class UserAPIView(APIView):
 
     def post(self, request) -> JsonResponse:
-        try:
-            email = request.POST.get('email')
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-        except Exception as e:
-            print(e)
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
         user = HBNNUser.objects.create_user(email,
                                             username,
@@ -55,8 +52,7 @@ class UserAPIView(APIView):
 
         return self.response(data=data)
 
-    def get(self, request, user_id: uuid.UUID=None) -> JsonResponse:
-        print(request.method)
+    def get(self, request, user_id: uuid.UUID = None) -> JsonResponse:
         if user_id:
             user = HBNNUser.objects.get(id=user_id)
             data = {

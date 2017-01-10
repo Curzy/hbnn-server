@@ -105,7 +105,7 @@ class UserAPITestCase(LiveServerTestCase):
         )
 
     def test_api_user_read_by_uuid(self):
-        url = self.url
+        base_url = self.url
 
         email = self.email
         username = self.username
@@ -117,7 +117,9 @@ class UserAPITestCase(LiveServerTestCase):
         user = HBNNUser.objects.get(email=email)
         user_id = str(user.id)
 
-        response = self.client.get(urljoin(url, '/'.join([user_id, ''])))
+        url = urljoin(base_url, '/'.join([user_id, '']))
+
+        response = self.client.get(url)
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
         self.assertEqual(data.get('email'), email)
@@ -125,7 +127,7 @@ class UserAPITestCase(LiveServerTestCase):
         self.assertEqual(data.get('id'), user_id)
 
     def test_api_user_update(self):
-        url = self.url
+        base_url = self.url
 
         email = self.email
         username = self.username
@@ -139,11 +141,14 @@ class UserAPITestCase(LiveServerTestCase):
         user = HBNNUser.objects.get(email=email)
         user_id = str(user.id)
 
+        url = urljoin(base_url, '/'.join([user_id, '']))
+
         parameter = {
             'username': new_username,
             'password': new_password
         }
-        response = self.client.put(urljoin(url, '/'.join([user_id, ''])),
+
+        response = self.client.put(url,
                                    data=urlencode(parameter))
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
