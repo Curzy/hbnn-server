@@ -58,7 +58,7 @@ class PingViewTestCase(LiveServerTestCase):
             response.json(),
             {
                 'status': 'success',
-                'data': {},
+                'data': None,
                 'message': 'PONG'
             }
         )

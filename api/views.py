@@ -11,7 +11,8 @@ from user.models import HBNNUser
 class APIView(View):
 
     @staticmethod
-    def response(data: typing.Optional[dict, list], status_code: int = 200,
+    def response(data: typing.Optional[typing.Union[dict, list]] = None,
+                 status_code: int = 200,
                  message: typing.Optional[str] = None) -> JsonResponse:
         payload = {
             'status': 'success' if status_code < 400 else 'error',
