@@ -117,7 +117,7 @@ class UserAPITestCase(LiveServerTestCase):
         user = User.objects.get(email=email)
         user_id = str(user.id)
 
-        url = urljoin(base_url, '/'.join([user_id, '']))
+        url = urljoin(base_url, f'{user_id}/')
 
         response = self.client.get(url)
         self.assertEqual(response.json().get('status'), 'success')
@@ -141,7 +141,7 @@ class UserAPITestCase(LiveServerTestCase):
         user = User.objects.get(email=email)
         user_id = str(user.id)
 
-        url = urljoin(base_url, '/'.join([user_id, '']))
+        url = urljoin(base_url, f'{user_id}/')
 
         parameter = {
             'username': new_username,
@@ -159,7 +159,7 @@ class UserAPITestCase(LiveServerTestCase):
         self.assertTrue(user.check_password(new_password))
 
     def test_api_user_delete(self):
-        url = self.url
+        base_url = self.url
 
         email = self.email
         username = self.username
@@ -171,7 +171,9 @@ class UserAPITestCase(LiveServerTestCase):
         user = User.objects.get(email=email)
         user_id = str(user.id)
 
-        response = self.client.delete(urljoin(url, '/'.join([user_id, ''])))
+        url = urljoin(base_url, f'{user_id}/')
+
+        response = self.client.delete(url)
         self.assertEqual(0, User.objects.filter(id=user_id).count())
         self.assertEqual(response.json().get('message'),
                          'Successfully deleted')
