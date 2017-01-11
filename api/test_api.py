@@ -66,7 +66,7 @@ class PingViewTestCase(LiveServerTestCase):
 
 
 class UserAPITestCase(LiveServerTestCase):
-    url = reverse('user_api')
+    url = reverse('api_user')
 
     email = 'test@test.com'
     username = 'test'

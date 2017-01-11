@@ -27,3 +27,5 @@ class HBBNUserTestCase(TestCase):
         user.save()
 
         self.assertNotEqual(user.created_at, user.modified_at)
+        user.refresh_from_db()
+        self.assertEqual(user.username, modified_username)
