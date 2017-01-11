@@ -16,12 +16,22 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
+    MALE = 1
+    FEMALE = 2
+
+    GENDER_CHOICES = (
+        (MALE, '남'),
+        (FEMALE, '여')
+    )
+
     objects = UserManager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     email = models.EmailField(max_length=255, unique=True)
-    username = models.CharField(max_length=60)
+    username = models.CharField(max_length=60, unique=True)
+
+    gender = models.SmallIntegerField(choices=GENDER_CHOICES, default=MALE)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
