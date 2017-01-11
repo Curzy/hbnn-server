@@ -88,8 +88,17 @@ class UserAPITestCase(LiveServerTestCase):
 
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
-        self.assertEqual(data.get('email'), email)
-        self.assertEqual(data.get('username'), username)
+        fields = data.get('fields')
+        self.assertEqual(fields.get('email'), email)
+        self.assertEqual(fields.get('username'), username)
+
+        fail_response = self.client.post(url,
+                                         {
+                                             'email': email,
+                                             'username': username,
+                                             'password': password
+                                         })
+        self.assertEqual(fail_response.json().get('status'), 'error')
 
     def test_api_user_read_all(self):
         url = self.url
@@ -122,9 +131,16 @@ class UserAPITestCase(LiveServerTestCase):
         response = self.client.get(url)
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
-        self.assertEqual(data.get('email'), email)
-        self.assertEqual(data.get('username'), username)
-        self.assertEqual(data.get('id'), user_id)
+        pk = data.get('pk')
+        self.assertEqual(pk, user_id)
+        fields = data.get('fields')
+        self.assertEqual(fields.get('email'), email)
+        self.assertEqual(fields.get('username'), username)
+
+        false_uuid = '00000000-0000-0000-0000-000000000000'
+        false_uuid_url = urljoin(base_url, f'{false_uuid}/')
+        fail_response = self.client.get(false_uuid_url)
+        self.assertEqual(fail_response.json().get('status'), 'error')
 
     def test_api_user_update(self):
         base_url = self.url
@@ -152,11 +168,19 @@ class UserAPITestCase(LiveServerTestCase):
                                    data=urlencode(parameter))
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
-        self.assertEqual(data.get('email'), email)
-        self.assertEqual(data.get('username'), new_username)
-        self.assertEqual(data.get('id'), user_id)
-        user = User.objects.get(email=email)
+        pk = data.get('pk')
+        self.assertEqual(pk, user_id)
+        fields = data.get('fields')
+        self.assertEqual(fields.get('email'), email)
+        self.assertEqual(fields.get('username'), new_username)
+        user.refresh_from_db()
         self.assertTrue(user.check_password(new_password))
+
+        false_uuid = '00000000-0000-0000-0000-000000000000'
+        false_uuid_url = urljoin(base_url, f'{false_uuid}/')
+        fail_response = self.client.put(false_uuid_url,
+                                        data=urlencode(parameter))
+        self.assertEqual(fail_response.json().get('status'), 'error')
 
     def test_api_user_delete(self):
         base_url = self.url
@@ -177,3 +201,8 @@ class UserAPITestCase(LiveServerTestCase):
         self.assertEqual(0, User.objects.filter(id=user_id).count())
         self.assertEqual(response.json().get('message'),
                          'Successfully deleted')
+
+        false_uuid = '00000000-0000-0000-0000-000000000000'
+        false_uuid_url = urljoin(base_url, f'{false_uuid}/')
+        fail_response = self.client.delete(false_uuid_url)
+        self.assertEqual(fail_response.json().get('status'), 'error')

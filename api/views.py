@@ -1,9 +1,12 @@
 import typing
 import uuid
+import json
 
 from django.db import connection
 from django.http import JsonResponse, QueryDict
 from django.views import View
+from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 
 from user.models import User
 
@@ -40,45 +43,37 @@ class UserAPIView(APIView):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        if User.objects.filter(
+                email=User.objects.normalize_email(email)).exists():
+            return self.response(status_code=404,
+                                 message='Email already exists')
         user = User.objects.create_user(email,
                                         username,
                                         password)
 
-        data = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'created_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S')
-        }
-
-        return self.response(data=data)
+        serialized_user_data = self.serialize_users([user, ])[0]
+        return self.response(data=serialized_user_data)
 
     def get(self, request, user_id: uuid.UUID = None) -> JsonResponse:
         if user_id:
-            user = User.objects.get(id=user_id)
-            data = {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'created_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            }
-
+            try:
+                user = User.objects.get(id=user_id)
+            except ObjectDoesNotExist:
+                return self.response(status_code=404,
+                                     message='User does not exist')
+            serialized_user_data = self.serialize_users([user, ])[0]
         else:
-            users = User.objects.values_list('id', 'username',
-                                             'email', 'created_at')
-            data = [
-                {
-                    'id': id_,
-                    'username': username,
-                    'email': email,
-                    'created_at': created_at.strftime('%Y-%m-%d %H:%M:%S')}
-                for id_, username, email, created_at in users
-            ]
+            users = User.objects.all()
+            serialized_user_data = self.serialize_users(users)
 
-        return self.response(data=data)
+        return self.response(data=serialized_user_data)
 
     def put(self, request, user_id: uuid.UUID) -> JsonResponse:
-        user = User.objects.get(id=user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return self.response(status_code=404,
+                                 message='User does not exist')
 
         parameters = QueryDict(request.body)
         new_username = parameters.get('username')
@@ -91,17 +86,23 @@ class UserAPIView(APIView):
 
         user.save()
 
-        data = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'created_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'modified_at': user.modified_at.strftime('%Y-%m-%d %H:%M:%S')
-        }
-        return self.response(data=data)
+        serialized_user_data = self.serialize_users([user, ])[0]
+        return self.response(data=serialized_user_data)
 
     def delete(self, request, user_id: uuid.UUID) -> JsonResponse:
-        user = User.objects.get(id=user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return self.response(status_code=404,
+                                 message='User does not exist')
 
         user.delete()
         return self.response(data={}, message='Successfully deleted')
+
+    @staticmethod
+    def serialize_users(data):
+        dump = serializers.serialize(
+            'json', data,
+            fields=('username', 'email', 'created_at')
+        )
+        return json.loads(dump)
