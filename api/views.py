@@ -9,7 +9,7 @@ from django.http import JsonResponse, QueryDict
 from django.views import View
 
 from api.decorators import jwt_login_required
-from user.models import User
+from user.models import User, UserProfile
 from utils.auth import JWTManager
 
 
@@ -130,3 +130,76 @@ class JWTAuthView(APIView):
         token = JWTManager.encode(user_id=str(user.id))
         data = {'token': token}
         return self.response(data=data)
+
+
+class UserProfileAPIView(APIView):
+    def get_user(self, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return self.response(status_code=404,
+                                 message='User does not exist')
+        return user
+
+    @jwt_login_required
+    def post(self, request, user_id: uuid.UUID) -> JsonResponse:
+        user = self.get_user(user_id)
+
+        taste = request.POST.get('taste')
+        introduction = request.POST.get('introduction')
+        description = request.POST.get('description')
+
+        userprofile = UserProfile.objects.create(
+            user=user,
+            taste=taste,
+            introduction=introduction,
+            description=description
+        )
+
+        serialized_userprofile = \
+            self.serialize_userprofiles(profile=[userprofile, ])[0]
+        return self.response(data=serialized_userprofile)
+
+    @jwt_login_required
+    def get(self, request, user_id: uuid.UUID) -> JsonResponse:
+        user = self.get_user(user_id)
+
+        try:
+            userprofile = user.userprofile
+        except AttributeError:
+            return self.response(status_code=404,
+                                 message='User profile does not exist')
+
+        serialized_userprofile = \
+            self.serialize_userprofiles(profile=[userprofile, ])[0]
+        return self.response(data=serialized_userprofile)
+
+    @jwt_login_required
+    def put(self, request, user_id: uuid.UUID) -> JsonResponse:
+        user = self.get_user(user_id)
+        try:
+            userprofile = user.userprofile
+        except AttributeError:
+            return self.response(status_code=404,
+                                 message='User profile does not exist')
+
+        parameters = QueryDict(request.body)
+        for field in parameters:
+            try:
+                setattr(userprofile, field, parameters.get(field))
+                userprofile.save()
+            except AttributeError:
+                'error'
+        userprofile.refresh_from_db()
+
+        serialized_userprofile = \
+            self.serialize_userprofiles(profile=[userprofile, ])[0]
+        return self.response(data=serialized_userprofile)
+
+    @staticmethod
+    def serialize_userprofiles(profile):
+        dump = serializers.serialize(
+            'json', profile,
+            fields=('user', 'taste', 'introduction', 'description')
+        )
+        return json.loads(dump)
