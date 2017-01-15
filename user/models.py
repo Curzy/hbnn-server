@@ -57,7 +57,8 @@ class UserProfile(models.Model):
         (VEGETARIAN, '채식')
     )
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE)
 
     taste = models.SmallIntegerField(choices=TASTE_CHOICES)
     introduction = models.CharField(max_length=128)
