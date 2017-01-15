@@ -90,5 +90,10 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Project settings
+/.idea
+.*.zsh
+ignored_*
+
 # db
 *.sqlite3

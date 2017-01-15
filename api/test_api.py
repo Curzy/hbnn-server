@@ -1,15 +1,14 @@
 import json
+from urllib.parse import urljoin, urlencode
 
 from django.test import LiveServerTestCase, TestCase
 from django.urls import reverse
-from urllib.parse import urljoin, urlencode
 
-from .views import APIView
 from user.models import User
+from .views import APIView
 
 
 class ApiViewTestCase(TestCase):
-
     def test_response(self):
         test_cases = (
             (
@@ -49,7 +48,6 @@ class ApiViewTestCase(TestCase):
 
 
 class PingViewTestCase(LiveServerTestCase):
-
     def test_get(self):
         url = reverse('api_ping')
 
@@ -164,8 +162,20 @@ class UserAPITestCase(LiveServerTestCase):
             'password': new_password
         }
 
-        response = self.client.put(url,
-                                   data=urlencode(parameter))
+        # Get jwt token
+        response = self.client.post(reverse('api_auth'), {
+            'email': email,
+            'password': password,
+        })
+        token = f"JWT {response.json()['data']['token']}"
+
+        # Authorization failure
+        response = self.client.put(url, data=urlencode(parameter))
+        self.assertEqual(response.json().get('status'), 'error')
+
+        # Authorization success
+        response = self.client.put(url, data=urlencode(parameter),
+                                   HTTP_AUTHORIZATION=token)
         self.assertEqual(response.json().get('status'), 'success')
         data = response.json().get('data')
         pk = data.get('pk')
@@ -195,9 +205,22 @@ class UserAPITestCase(LiveServerTestCase):
         user = User.objects.get(email=email)
         user_id = str(user.id)
 
+        # Get jwt token
+        response = self.client.post(reverse('api_auth'), {
+            'email': email,
+            'password': password,
+        })
+        token = f"JWT {response.json()['data']['token']}"
+
         url = urljoin(base_url, f'{user_id}/')
 
+        # Authorization failure
         response = self.client.delete(url)
+        self.assertEqual(response.json().get('status'), 'error')
+
+        # Authorization success
+        response = self.client.delete(url, HTTP_AUTHORIZATION=token)
+        self.assertEqual(response.json().get('status'), 'success')
         self.assertEqual(0, User.objects.filter(id=user_id).count())
         self.assertEqual(response.json().get('message'),
                          'Successfully deleted')
@@ -206,3 +229,44 @@ class UserAPITestCase(LiveServerTestCase):
         false_uuid_url = urljoin(base_url, f'{false_uuid}/')
         fail_response = self.client.delete(false_uuid_url)
         self.assertEqual(fail_response.json().get('status'), 'error')
+
+
+class JWTAuthAPITestCase(LiveServerTestCase):
+    url = reverse('api_auth')
+
+    email = 'test@test.com'
+    username = 'test'
+    password = 'test'
+
+    def create_user(self):
+        url = reverse('api_user')
+        self.client.post(url, {
+            'email': self.email,
+            'username': self.username,
+            'password': self.password,
+        })
+
+    def test_api_jwt_auth(self):
+        # Create base user
+        self.create_user()
+
+        # Email checking failure
+        fail_response = self.client.post(self.url, {
+            'email': f'{self.email}-fake',
+            'password': self.password,
+        })
+        self.assertEqual(fail_response.json().get('status'), 'error')
+
+        # Password checking failure
+        fail_response = self.client.post(self.url, {
+            'email': self.email,
+            'password': f'{self.password}-fake',
+        })
+        self.assertEqual(fail_response.json().get('status'), 'error')
+
+        # Success
+        response = self.client.post(self.url, {
+            'email': self.email,
+            'password': self.password,
+        })
+        self.assertEqual(response.json().get('status'), 'success')

@@ -1,18 +1,19 @@
+import json
 import typing
 import uuid
-import json
 
+from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
 from django.http import JsonResponse, QueryDict
 from django.views import View
-from django.core import serializers
-from django.core.exceptions import ObjectDoesNotExist
 
+from api.decorators import jwt_login_required
 from user.models import User
+from utils.auth import JWTManager
 
 
 class APIView(View):
-
     @staticmethod
     def response(data: typing.Optional[typing.Union[dict, list]] = None,
                  status_code: int = 200,
@@ -28,7 +29,6 @@ class APIView(View):
 
 
 class PingView(APIView):
-
     def get(self, request) -> JsonResponse:
         cursor = connection.cursor()
         cursor.execute('''SELECT 1''')
@@ -37,7 +37,6 @@ class PingView(APIView):
 
 
 class UserAPIView(APIView):
-
     def post(self, request) -> JsonResponse:
         email = request.POST.get('email')
         username = request.POST.get('username')
@@ -68,7 +67,11 @@ class UserAPIView(APIView):
 
         return self.response(data=serialized_user_data)
 
+    @jwt_login_required
     def put(self, request, user_id: uuid.UUID) -> JsonResponse:
+        if user_id == request.user.id:
+            return self.response(status_code=401,
+                                 message='Unauthorized')
         try:
             user = User.objects.get(id=user_id)
         except ObjectDoesNotExist:
@@ -89,7 +92,11 @@ class UserAPIView(APIView):
         serialized_user_data = self.serialize_users([user, ])[0]
         return self.response(data=serialized_user_data)
 
+    @jwt_login_required
     def delete(self, request, user_id: uuid.UUID) -> JsonResponse:
+        if user_id == request.user.id:
+            return self.response(status_code=401, message='Unauthorized')
+
         try:
             user = User.objects.get(id=user_id)
         except ObjectDoesNotExist:
@@ -106,3 +113,20 @@ class UserAPIView(APIView):
             fields=('username', 'email', 'created_at')
         )
         return json.loads(dump)
+
+
+class JWTAuthView(APIView):
+    def post(self, request) -> JsonResponse:
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user = User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return self.response(status_code=400,
+                                 message='User does not exist')
+        if not user.check_password(raw_password=password):
+            return self.response(status_code=400,
+                                 message='User does not exist')
+        token = JWTManager.encode(user_id=str(user.id))
+        data = {'token': token}
+        return self.response(data=data)
