@@ -1,7 +1,4 @@
 machine:
-  pre:
-    - cd /opt/circleci/.pyenv; git pull; cd ~
-
   timezone:
     Asia/Seoul
 
