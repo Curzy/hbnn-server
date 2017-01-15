@@ -52,9 +52,7 @@ class HBBNUserTestCase(TestCase):
         self.assertEqual(profile.description, self.description)
 
         user.delete()
-
         user = User.objects.filter(email=self.email)
-        profile = UserProfile.objects.filter(user__email=self.email)
-        print(profile)
+
         self.assertEqual(user.exists(), False)
-        self.assertEqual(profile.exists(), False)
+        self.assertEqual(UserProfile.objects.exists(), False)
