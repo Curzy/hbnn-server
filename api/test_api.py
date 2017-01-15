@@ -286,7 +286,7 @@ class UserProfileAPITestCase(HBNNLiveServerTestCase):
                                     HTTP_AUTHORIZATION=token)
 
         self.assertEqual(response.json().get('status'), 'success')
-        fields = response.json().get('data').get('fields')
+        fields = response.json()['data']['fields']
         self.assertEqual(fields.get('introduction'), self.introduction)
         self.assertEqual(fields.get('description'), self.description)
 
@@ -302,7 +302,7 @@ class UserProfileAPITestCase(HBNNLiveServerTestCase):
                                    HTTP_AUTHORIZATION=token)
 
         self.assertEqual(response.json().get('status'), 'success')
-        fields = response.json().get('data').get('fields')
+        fields = response.json()['data']['fields']
         self.assertEqual(fields.get('taste'), self.taste)
         self.assertEqual(fields.get('introduction'), self.introduction)
         self.assertEqual(fields.get('description'), self.description)
@@ -325,6 +325,6 @@ class UserProfileAPITestCase(HBNNLiveServerTestCase):
         response = self.client.put(url, data=urlencode(parameter),
                                    HTTP_AUTHORIZATION=token)
         self.assertEqual(response.json().get('status'), 'success')
-        fields = response.json().get('data').get('fields')
+        fields = response.json()['data']['fields']
         self.assertEqual(fields.get('taste'), new_taste)
         self.assertEqual(fields.get('introduction'), new_introduction)
