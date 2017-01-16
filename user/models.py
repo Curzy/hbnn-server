@@ -40,3 +40,29 @@ class User(AbstractBaseUser):
     modified_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = 'email'
+
+
+class UserProfile(models.Model):
+    KOREAN = 1
+    CHINESE = 2
+    JAPANESE = 3
+    WESTERN = 4
+    VEGETARIAN = 5
+
+    TASTE_CHOICES = (
+        (KOREAN, '한식'),
+        (CHINESE, '중식'),
+        (JAPANESE, '일식'),
+        (WESTERN, '양식'),
+        (VEGETARIAN, '채식')
+    )
+
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE)
+
+    taste = models.SmallIntegerField(choices=TASTE_CHOICES)
+    introduction = models.CharField(max_length=128)
+    description = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)

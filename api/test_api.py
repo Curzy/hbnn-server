@@ -4,7 +4,7 @@ from urllib.parse import urljoin, urlencode
 from django.test import LiveServerTestCase, TestCase
 from django.urls import reverse
 
-from user.models import User
+from user.models import User, UserProfile
 from .views import APIView
 
 
@@ -63,12 +63,33 @@ class PingViewTestCase(LiveServerTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class UserAPITestCase(LiveServerTestCase):
-    url = reverse('api_user')
-
+class HBNNLiveServerTestCase(LiveServerTestCase):
     email = 'test@test.com'
     username = 'test'
     password = 'test'
+    taste = UserProfile.KOREAN
+    introduction = '안녕하세요'
+    description = '자세한 설명은 생략한다'
+
+    def create_user(self):
+        url = reverse('api_user')
+        self.client.post(url, {
+            'email': self.email,
+            'username': self.username,
+            'password': self.password,
+        })
+
+    def get_jwt_token(self):
+        response = self.client.post(reverse('api_auth'), {
+            'email': self.email,
+            'password': self.password,
+        })
+        token = f"JWT {response.json()['data']['token']}"
+        return token
+
+
+class UserAPITestCase(HBNNLiveServerTestCase):
+    url = reverse('api_user')
 
     def test_api_user_create(self):
         url = self.url
@@ -114,14 +135,8 @@ class UserAPITestCase(LiveServerTestCase):
     def test_api_user_read_by_uuid(self):
         base_url = self.url
 
-        email = self.email
-        username = self.username
-        password = self.password
-
-        User.objects.create_user(email,
-                                 username,
-                                 password)
-        user = User.objects.get(email=email)
+        self.create_user()
+        user = User.objects.get(email=self.email)
         user_id = str(user.id)
 
         url = urljoin(base_url, f'{user_id}/')
@@ -132,8 +147,8 @@ class UserAPITestCase(LiveServerTestCase):
         pk = data.get('pk')
         self.assertEqual(pk, user_id)
         fields = data.get('fields')
-        self.assertEqual(fields.get('email'), email)
-        self.assertEqual(fields.get('username'), username)
+        self.assertEqual(fields.get('email'), self.email)
+        self.assertEqual(fields.get('username'), self.username)
 
         false_uuid = '00000000-0000-0000-0000-000000000000'
         false_uuid_url = urljoin(base_url, f'{false_uuid}/')
@@ -142,20 +157,14 @@ class UserAPITestCase(LiveServerTestCase):
 
     def test_api_user_update(self):
         base_url = self.url
-
-        email = self.email
-        username = self.username
-        password = self.password
-
-        new_username = 'test2'
-        new_password = 'test2'
-        User.objects.create_user(email,
-                                 username,
-                                 password)
-        user = User.objects.get(email=email)
+        self.create_user()
+        user = User.objects.get(email=self.email)
         user_id = str(user.id)
 
         url = urljoin(base_url, f'{user_id}/')
+
+        new_username = 'test2'
+        new_password = 'test2'
 
         parameter = {
             'username': new_username,
@@ -163,11 +172,7 @@ class UserAPITestCase(LiveServerTestCase):
         }
 
         # Get jwt token
-        response = self.client.post(reverse('api_auth'), {
-            'email': email,
-            'password': password,
-        })
-        token = f"JWT {response.json()['data']['token']}"
+        token = self.get_jwt_token()
 
         # Authorization failure
         response = self.client.put(url, data=urlencode(parameter))
@@ -181,7 +186,7 @@ class UserAPITestCase(LiveServerTestCase):
         pk = data.get('pk')
         self.assertEqual(pk, user_id)
         fields = data.get('fields')
-        self.assertEqual(fields.get('email'), email)
+        self.assertEqual(fields.get('email'), self.email)
         self.assertEqual(fields.get('username'), new_username)
         user.refresh_from_db()
         self.assertTrue(user.check_password(new_password))
@@ -195,22 +200,11 @@ class UserAPITestCase(LiveServerTestCase):
     def test_api_user_delete(self):
         base_url = self.url
 
-        email = self.email
-        username = self.username
-        password = self.password
-
-        User.objects.create_user(email,
-                                 username,
-                                 password)
-        user = User.objects.get(email=email)
+        self.create_user()
+        user = User.objects.get(email=self.email)
         user_id = str(user.id)
 
-        # Get jwt token
-        response = self.client.post(reverse('api_auth'), {
-            'email': email,
-            'password': password,
-        })
-        token = f"JWT {response.json()['data']['token']}"
+        token = self.get_jwt_token()
 
         url = urljoin(base_url, f'{user_id}/')
 
@@ -231,20 +225,8 @@ class UserAPITestCase(LiveServerTestCase):
         self.assertEqual(fail_response.json().get('status'), 'error')
 
 
-class JWTAuthAPITestCase(LiveServerTestCase):
+class JWTAuthAPITestCase(HBNNLiveServerTestCase):
     url = reverse('api_auth')
-
-    email = 'test@test.com'
-    username = 'test'
-    password = 'test'
-
-    def create_user(self):
-        url = reverse('api_user')
-        self.client.post(url, {
-            'email': self.email,
-            'username': self.username,
-            'password': self.password,
-        })
 
     def test_api_jwt_auth(self):
         # Create base user
@@ -270,3 +252,79 @@ class JWTAuthAPITestCase(LiveServerTestCase):
             'password': self.password,
         })
         self.assertEqual(response.json().get('status'), 'success')
+
+
+class UserProfileAPITestCase(HBNNLiveServerTestCase):
+    url = reverse('api_user')
+
+    def create_user_profile(self, user):
+        UserProfile.objects.create(
+            user=user,
+            taste=self.taste,
+            introduction=self.introduction,
+            description=self.description
+        )
+
+    def get_url(self, user_id):
+        url = urljoin(self.url, f'{user_id}/profile/')
+        return url
+
+    def test_userprofile_create(self):
+        self.create_user()
+        user = User.objects.get(email=self.email)
+        user_id = str(user.id)
+        token = self.get_jwt_token()
+
+        url = self.get_url(user_id)
+        parameters = {
+            'taste': self.taste,
+            'introduction': self.introduction,
+            'description': self.description
+        }
+        response = self.client.post(url,
+                                    parameters,
+                                    HTTP_AUTHORIZATION=token)
+
+        self.assertEqual(response.json().get('status'), 'success')
+        fields = response.json()['data']['fields']
+        self.assertEqual(fields.get('introduction'), self.introduction)
+        self.assertEqual(fields.get('description'), self.description)
+
+    def test_userprofile_read(self):
+        self.create_user()
+        user = User.objects.get(email=self.email)
+        self.create_user_profile(user)
+        user_id = str(user.id)
+        token = self.get_jwt_token()
+
+        url = self.get_url(user_id)
+        response = self.client.get(url,
+                                   HTTP_AUTHORIZATION=token)
+
+        self.assertEqual(response.json().get('status'), 'success')
+        fields = response.json()['data']['fields']
+        self.assertEqual(fields.get('taste'), self.taste)
+        self.assertEqual(fields.get('introduction'), self.introduction)
+        self.assertEqual(fields.get('description'), self.description)
+
+    def test_userprofile_update(self):
+        self.create_user()
+        user = User.objects.get(email=self.email)
+        self.create_user_profile(user)
+        user_id = str(user.id)
+        token = self.get_jwt_token()
+
+        new_taste = UserProfile.JAPANESE
+        new_introduction = '안녕못하다'
+        url = self.get_url(user_id)
+        parameter = {
+            'taste': new_taste,
+            'introduction': new_introduction,
+        }
+
+        response = self.client.put(url, data=urlencode(parameter),
+                                   HTTP_AUTHORIZATION=token)
+        self.assertEqual(response.json().get('status'), 'success')
+        fields = response.json()['data']['fields']
+        self.assertEqual(fields.get('taste'), new_taste)
+        self.assertEqual(fields.get('introduction'), new_introduction)
