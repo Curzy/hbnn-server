@@ -66,3 +66,14 @@ class UserProfile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+
+class UserPhoto(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE)
+
+    image = models.ImageField(null=True)
+
+    priority = models.PositiveSmallIntegerField(default=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
