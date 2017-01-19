@@ -71,7 +71,7 @@ class UserProfile(models.Model):
 
 
 def user_directory_path(username, filename):
-    return f'images/{username}/{self.get_filename(filename)}'
+    return f'images/{username}/{get_filename(filename)}'
 
 
 def get_filename(username, filename):
