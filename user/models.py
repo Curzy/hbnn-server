@@ -1,4 +1,6 @@
 import uuid
+import os
+import datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -66,6 +68,18 @@ class UserProfile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+
+def user_directory_path(username, filename):
+    return f'images/{username}/{self.get_filename(filename)}'
+
+
+def get_filename(username, filename):
+    file_extension = os.path.splitext(filename)[1]
+    now = datetime.datetime.now()
+
+    return f'{username}-{now.date()}-{now.microsecond}' \
+           f'{file_extension}'
 
 
 class UserPhoto(models.Model):
