@@ -1,3 +1,8 @@
+"""
+    API
+    ~~~~~~~~~
+"""
+
 import json
 import typing
 import uuid
@@ -14,6 +19,9 @@ from utils.auth import JWTManager
 
 
 class APIView(View):
+    """혼밥남녀 API는 이 APIView를 상속받아 json 포맷으로 응답합니다
+    """
+
     @staticmethod
     def response(data: typing.Optional[typing.Union[dict, list]] = None,
                  status_code: int = 200,
@@ -29,7 +37,22 @@ class APIView(View):
 
 
 class PingView(APIView):
+    """서버에 ping을 보내어 라이브 상태를 확인합니다"""
+
     def get(self, request) -> JsonResponse:
+        """
+
+        :param request:
+        :return:
+        예:
+            request: /api/ping/
+            method: GET
+            response: {
+                'status': 'success',
+                'data': None,
+                'message': 'PONG'
+            }
+        """
         cursor = connection.cursor()
         cursor.execute('''SELECT 1''')
         assert cursor.fetchone()[0] == 1
