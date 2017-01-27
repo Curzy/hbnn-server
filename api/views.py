@@ -35,6 +35,14 @@ class APIView(View):
         response.status_code = status_code
         return response
 
+    @staticmethod
+    def serialize(data, fields: typing.Union[list, tuple]):
+        dump = serializers.serialize(
+            'json', data,
+            fields=fields
+        )
+        return json.loads(dump)
+
 
 class PingView(APIView):
     """서버에 ping을 보내어 라이브 상태를 확인합니다"""
@@ -53,6 +61,7 @@ class PingView(APIView):
                 'message': 'PONG'
             }
         """
+
         cursor = connection.cursor()
         cursor.execute('''SELECT 1''')
         assert cursor.fetchone()[0] == 1
@@ -129,13 +138,8 @@ class UserAPIView(APIView):
         user.delete()
         return self.response(data={}, message='Successfully deleted')
 
-    @staticmethod
-    def serialize_users(data):
-        dump = serializers.serialize(
-            'json', data,
-            fields=('username', 'email', 'created_at')
-        )
-        return json.loads(dump)
+    def serialize_users(self, data):
+        return self.serialize(data, fields=('username', 'email', 'created_at'))
 
 
 class JWTAuthView(APIView):
@@ -180,7 +184,7 @@ class UserProfileAPIView(APIView):
         )
 
         serialized_userprofile = \
-            self.serialize_userprofiles(profile=[userprofile, ])[0]
+            self.serialize_userprofile([userprofile, ])[0]
         return self.response(data=serialized_userprofile)
 
     @jwt_login_required
@@ -216,13 +220,9 @@ class UserProfileAPIView(APIView):
         userprofile.refresh_from_db()
 
         serialized_userprofile = \
-            self.serialize_userprofiles(profile=[userprofile, ])[0]
+            self.serialize_userprofile([userprofile, ])[0]
         return self.response(data=serialized_userprofile)
 
-    @staticmethod
-    def serialize_userprofiles(profile):
-        dump = serializers.serialize(
-            'json', profile,
-            fields=('user', 'taste', 'introduction', 'description')
-        )
-        return json.loads(dump)
+    def serialize_userprofile(self, data):
+        return self.serialize(data, fields=('user', 'taste',
+                                            'introduction', 'description'))
