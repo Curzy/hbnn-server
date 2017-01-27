@@ -54,8 +54,6 @@ class PingView(APIView):
 
     def get(self, request) -> JsonResponse:
         """
-            method: GET
-
             request
                 /api/ping/
 
