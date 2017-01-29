@@ -5,7 +5,7 @@ from django.test import LiveServerTestCase, TestCase
 from django.urls import reverse
 
 from user.models import User, UserProfile
-from .views import APIView
+from api.views import APIView
 
 
 class ApiViewTestCase(TestCase):

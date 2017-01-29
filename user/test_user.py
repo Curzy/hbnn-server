@@ -2,7 +2,7 @@ import uuid
 
 from django.test import TestCase
 
-from .models import User, UserProfile
+from user.models import User, UserProfile
 
 
 class HBBNUserTestCase(TestCase):

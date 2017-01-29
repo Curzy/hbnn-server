@@ -6,6 +6,7 @@ from utils.auth import JWTManager
 
 
 def jwt_login_required(view_func):
+    """JWT(Json Web Token)을 통한 인증이 필요한 경우에 사용합니다"""
     def fail():
         from api.views import APIView
         return APIView.response(status_code=401, message='JWT required')
