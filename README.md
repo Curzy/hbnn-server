@@ -12,6 +12,11 @@
 ```bash
 $ pip install -r requirements/dev.txt
 ```
+3. pre-commit 훅을 설치합니다. (flake8 코드 린터)
+```bash
+$ flake8 --install-hook git
+$ git config --bool flake8.strict true (린터 통과시에만 커밋 완료)
+```
 
 ## 실행
 
