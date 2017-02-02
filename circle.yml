@@ -1,0 +1,15 @@
+machine:
+  timezone:
+    Asia/Seoul
+
+  python:
+    version: 3.6.0
+
+dependencies:
+  override:
+    - pip install -r requirements/ci.txt
+
+test:
+  override:
+    - flake8 --config .flake8
+    - pytest 

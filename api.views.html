@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.views module &#8212; hbnn 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="index" title="색인" href="genindex.html" />
+    <link rel="search" title="검색" href="search.html" />
+    <link rel="prev" title="api.decorators module" href="api.decorators.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-api.views">
+<span id="api-views-module"></span><h1>api.views module<a class="headerlink" href="#module-api.views" title="제목 주소">¶</a></h1>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="제목 주소">¶</a></h2>
+<dl class="class">
+<dt id="api.views.APIView">
+<em class="property">class </em><code class="descclassname">api.views.</code><code class="descname">APIView</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#APIView"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.APIView" title="정의 주소">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.views.generic.base.View</span></code></p>
+<p>혼밥남녀 API는 이 APIView를 상속받아 json 포맷으로 응답합니다</p>
+<p>각 post, get, update, delete 함수</p>
+<p>http 요청 메서드(POST, GET, UPDATE, DELETE)에 대응하게 작성합니다.</p>
+<dl class="staticmethod">
+<dt id="api.views.APIView.response">
+<em class="property">static </em><code class="descname">response</code><span class="sig-paren">(</span><em>data: typing.Union[dict</em>, <em>list</em>, <em>NoneType] = None</em>, <em>status_code: int = 200</em>, <em>message: typing.Union[str</em>, <em>NoneType] = None</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#APIView.response"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.APIView.response" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="api.views.APIView.serialize">
+<em class="property">static </em><code class="descname">serialize</code><span class="sig-paren">(</span><em>data, fields: typing.Union[list, tuple]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#APIView.serialize"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.APIView.serialize" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.views.JWTAuthView">
+<em class="property">class </em><code class="descclassname">api.views.</code><code class="descname">JWTAuthView</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#JWTAuthView"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.JWTAuthView" title="정의 주소">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.views.APIView" title="api.views.APIView"><code class="xref py py-class docutils literal"><span class="pre">api.views.APIView</span></code></a></p>
+<dl class="method">
+<dt id="api.views.JWTAuthView.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#JWTAuthView.post"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.JWTAuthView.post" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.views.PingView">
+<em class="property">class </em><code class="descclassname">api.views.</code><code class="descname">PingView</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#PingView"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.PingView" title="정의 주소">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.views.APIView" title="api.views.APIView"><code class="xref py py-class docutils literal"><span class="pre">api.views.APIView</span></code></a></p>
+<p>서버에 ping을 보내어 라이브 상태를 확인합니다</p>
+<dl class="method">
+<dt id="api.views.PingView.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#PingView.get"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.PingView.get" title="정의 주소">¶</a></dt>
+<dd><dl class="docutils">
+<dt>request</dt>
+<dd>/api/ping/</dd>
+<dt>response:</dt>
+<dd><p class="first">{</p>
+<blockquote>
+<div><p>&#8216;status&#8217;: &#8216;success&#8217;,</p>
+<p>&#8216;data&#8217;: None,</p>
+<p>&#8216;message&#8217;: &#8216;PONG&#8217;</p>
+</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.views.UserAPIView">
+<em class="property">class </em><code class="descclassname">api.views.</code><code class="descname">UserAPIView</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#UserAPIView"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView" title="정의 주소">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.views.APIView" title="api.views.APIView"><code class="xref py py-class docutils literal"><span class="pre">api.views.APIView</span></code></a></p>
+<p>기본적인 로그인을 수행하는 User 모델을 컨트롤 하는 API 입니다</p>
+<p>url: /api/users/</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return Dict:</th><td class="field-body"><ul class="first last simple">
+<li>&#8216;email&#8217;: User login email</li>
+<li>&#8216;username&#8217;: Username</li>
+<li>&#8216;created_at&#8217;: Sign in timestamp</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="api.views.UserAPIView.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserAPIView.delete"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView.delete" title="정의 주소">¶</a></dt>
+<dd><p>유저를 삭제합니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><strong>user_id</strong> (<em>uuid</em>) &#8211; 삭제할 유저의 id</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserAPIView.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID = None</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserAPIView.get"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView.get" title="정의 주소">¶</a></dt>
+<dd><p>유저의 정보를 가져옵니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><strong>user_id</strong> (<em>uuid</em>) &#8211; <ul class="simple">
+<li>None: 모든 유저의 정보를 가져옵니다</li>
+<li>uuid: 해당 id의 정보를 가져옵니다</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserAPIView.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserAPIView.post"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView.post" title="정의 주소">¶</a></dt>
+<dd><p>유저를 생성합니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><strong>request</strong> &#8211; <ul class="simple">
+<li>&#8216;email&#8217;: User login email(unique)</li>
+<li>&#8216;username&#8217;: Username to show(unique)</li>
+<li>&#8216;password&#8217;: User login password</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserAPIView.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserAPIView.put"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView.put" title="정의 주소">¶</a></dt>
+<dd><p>유저의 정보를 업데이트 합니다</p>
+<p>변경 가능한 정보는 username, password 입니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user_id</strong> (<em>uuid</em>) &#8211; 변경할 유저의 id</li>
+<li><strong>request</strong> &#8211; <p>body에 dictionary로 변경할 파라미터, 변경할 값의 순서로 전달합니다</p>
+<p>{</p>
+<blockquote>
+<div>&#8216;username&#8217;: &#8216;tester&#8217;,<p>&#8216;password&#8217;: &#8216;testpassword</p>
+</div></blockquote>
+<p>}</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserAPIView.serialize_users">
+<code class="descname">serialize_users</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#UserAPIView.serialize_users"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserAPIView.serialize_users" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.views.UserProfileAPIView">
+<em class="property">class </em><code class="descclassname">api.views.</code><code class="descname">UserProfileAPIView</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#UserProfileAPIView"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView" title="정의 주소">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.views.APIView" title="api.views.APIView"><code class="xref py py-class docutils literal"><span class="pre">api.views.APIView</span></code></a></p>
+<p>유저의 음식 취향, 소개등의 정보를 담는 UserProfile 모델을 컨트롤하는 API 입니다</p>
+<p>url: /api/users/{user_id}/profile/</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return Dict:</th><td class="field-body"><ul class="first last simple">
+<li>&#8216;user&#8217;: User</li>
+<li>&#8216;taste&#8217;: 음식 취향</li>
+<li>&#8216;introduction&#8217;: 짧은 소개</li>
+<li>&#8216;description&#8217;: 긴 소개</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="api.views.UserProfileAPIView.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserProfileAPIView.get"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView.get" title="정의 주소">¶</a></dt>
+<dd><p>유저 프로파일을 가져옵니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><strong>user_id</strong> (<em>uuid</em>) &#8211; 가져올 프로파일의 유저의 id</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserProfileAPIView.get_user">
+<code class="descname">get_user</code><span class="sig-paren">(</span><em>user_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#UserProfileAPIView.get_user"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView.get_user" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserProfileAPIView.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserProfileAPIView.post"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView.post" title="정의 주소">¶</a></dt>
+<dd><p>유저 프로파일을 생성합니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><strong>request</strong> &#8211; <p>{</p>
+<blockquote>
+<div>&#8216;taste&#8217;: 취향(int),<p>&#8216;introduction&#8217;: 짧은 소개,</p>
+<p>&#8216;description&#8217;: 긴 소개</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserProfileAPIView.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>request</em>, <em>user_id: uuid.UUID</em><span class="sig-paren">)</span> &rarr; django.http.response.JsonResponse<a class="reference internal" href="_modules/api/views.html#UserProfileAPIView.put"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView.put" title="정의 주소">¶</a></dt>
+<dd><p>유저 프로파일을 변경합니다</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">매개 변수:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user_id</strong> (<em>uuid</em>) &#8211; 변경할 유저의 id</li>
+<li><strong>request</strong> &#8211; <p>body에 dictionary로 변경할 파라미터, 변경할 값의 순서로 전달합니다</p>
+<p>{</p>
+<blockquote>
+<div>&#8216;taste&#8217;: 5,<p>&#8216;introduction&#8217;: &#8216;안녕하세요&#8217;,</p>
+<p>&#8216;description&#8217;: &#8216;자세한 설명은 생략한다&#8217;</p>
+</div></blockquote>
+<p>}</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.views.UserProfileAPIView.serialize_userprofile">
+<code class="descname">serialize_userprofile</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/views.html#UserProfileAPIView.serialize_userprofile"><span class="viewcode-link">[소스]</span></a><a class="headerlink" href="#api.views.UserProfileAPIView.serialize_userprofile" title="정의 주소">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">목차</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">api.views module</a><ul>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="api.html">api package</a><ul>
+      <li>Previous: <a href="api.decorators.html" title="이전 장">api.decorators module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>현재 문서</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.views.rst.txt"
+            rel="nofollow">소스 코드를 보려면</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>빠른 검색</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="바로 가기" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Flative.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/api.views.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.views &#8212; hbnn 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/translations.js"></script>
+    <link rel="index" title="색인" href="../../genindex.html" />
+    <link rel="search" title="검색" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for api.views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API</span>
+<span class="sd">    ~~~~~~~~~</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">django.core</span> <span class="k">import</span> <span class="n">serializers</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="k">import</span> <span class="n">ObjectDoesNotExist</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">connection</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="k">import</span> <span class="n">JsonResponse</span><span class="p">,</span> <span class="n">QueryDict</span>
+<span class="kn">from</span> <span class="nn">django.views</span> <span class="k">import</span> <span class="n">View</span>
+
+<span class="kn">from</span> <span class="nn">api.decorators</span> <span class="k">import</span> <span class="n">jwt_login_required</span>
+<span class="kn">from</span> <span class="nn">user.models</span> <span class="k">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">UserProfile</span>
+<span class="kn">from</span> <span class="nn">utils.auth</span> <span class="k">import</span> <span class="n">JWTManager</span>
+
+
+<div class="viewcode-block" id="APIView"><a class="viewcode-back" href="../../api.views.html#api.views.APIView">[문서]</a><span class="k">class</span> <span class="nc">APIView</span><span class="p">(</span><span class="n">View</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;혼밥남녀 API는 이 APIView를 상속받아 json 포맷으로 응답합니다</span>
+
+<span class="sd">        각 post, get, update, delete 함수</span>
+
+<span class="sd">        http 요청 메서드(POST, GET, UPDATE, DELETE)에 대응하게 작성합니다.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="APIView.response"><a class="viewcode-back" href="../../api.views.html#api.views.APIView.response">[문서]</a>    <span class="k">def</span> <span class="nf">response</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+                 <span class="n">message</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span> <span class="k">if</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span> <span class="k">else</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="APIView.serialize"><a class="viewcode-back" href="../../api.views.html#api.views.APIView.serialize">[문서]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]):</span>
+        <span class="n">dump</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span>
+            <span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">fields</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dump</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PingView"><a class="viewcode-back" href="../../api.views.html#api.views.PingView">[문서]</a><span class="k">class</span> <span class="nc">PingView</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;서버에 ping을 보내어 라이브 상태를 확인합니다&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PingView.get"><a class="viewcode-back" href="../../api.views.html#api.views.PingView.get">[문서]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            request</span>
+<span class="sd">                /api/ping/</span>
+
+<span class="sd">            response:</span>
+<span class="sd">                {</span>
+
+<span class="sd">                    &#39;status&#39;: &#39;success&#39;,</span>
+
+<span class="sd">                    &#39;data&#39;: None,</span>
+
+<span class="sd">                    &#39;message&#39;: &#39;PONG&#39;</span>
+
+<span class="sd">                }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT 1&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;PONG&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="UserAPIView"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView">[문서]</a><span class="k">class</span> <span class="nc">UserAPIView</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;기본적인 로그인을 수행하는 User 모델을 컨트롤 하는 API 입니다</span>
+
+<span class="sd">        url: /api/users/</span>
+
+<span class="sd">        :return Dict:</span>
+<span class="sd">            - &#39;email&#39;: User login email</span>
+<span class="sd">            - &#39;username&#39;: Username</span>
+<span class="sd">            - &#39;created_at&#39;: Sign in timestamp</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="UserAPIView.post"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView.post">[문서]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저를 생성합니다</span>
+
+<span class="sd">            :param request:</span>
+<span class="sd">                - &#39;email&#39;: User login email(unique)</span>
+<span class="sd">                - &#39;username&#39;: Username to show(unique)</span>
+<span class="sd">                - &#39;password&#39;: User login password</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">)</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">email</span><span class="o">=</span><span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">normalize_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Email already exists&#39;</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">email</span><span class="p">,</span>
+                                        <span class="n">username</span><span class="p">,</span>
+                                        <span class="n">password</span><span class="p">)</span>
+
+        <span class="n">serialized_user_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_users</span><span class="p">([</span><span class="n">user</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_user_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UserAPIView.get"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView.get">[문서]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저의 정보를 가져옵니다</span>
+
+<span class="sd">            :param uuid user_id:</span>
+<span class="sd">                - None: 모든 유저의 정보를 가져옵니다</span>
+<span class="sd">                - uuid: 해당 id의 정보를 가져옵니다</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">user_id</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                     <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+            <span class="n">serialized_user_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_users</span><span class="p">([</span><span class="n">user</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="n">serialized_user_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_users</span><span class="p">(</span><span class="n">users</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_user_data</span><span class="p">)</span></div>
+
+    <span class="nd">@jwt_login_required</span>
+<div class="viewcode-block" id="UserAPIView.put"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView.put">[문서]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; 유저의 정보를 업데이트 합니다</span>
+
+<span class="sd">            변경 가능한 정보는 username, password 입니다</span>
+
+<span class="sd">            :param uuid user_id: 변경할 유저의 id</span>
+
+<span class="sd">            :param request:</span>
+<span class="sd">                body에 dictionary로 변경할 파라미터, 변경할 값의 순서로 전달합니다</span>
+
+<span class="sd">                {</span>
+
+<span class="sd">                    &#39;username&#39;: &#39;tester&#39;,</span>
+
+<span class="sd">                    &#39;password&#39;: &#39;testpassword</span>
+
+<span class="sd">                }</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Unauthorized&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">new_username</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
+        <span class="n">new_password</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">new_username</span><span class="p">:</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">new_username</span>
+        <span class="k">if</span> <span class="n">new_password</span><span class="p">:</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="n">new_password</span><span class="p">)</span>
+
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">serialized_user_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_users</span><span class="p">([</span><span class="n">user</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_user_data</span><span class="p">)</span></div>
+
+    <span class="nd">@jwt_login_required</span>
+<div class="viewcode-block" id="UserAPIView.delete"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView.delete">[문서]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저를 삭제합니다</span>
+
+<span class="sd">        :param uuid user_id: 삭제할 유저의 id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Unauthorized&#39;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+
+        <span class="n">user</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{},</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Successfully deleted&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UserAPIView.serialize_users"><a class="viewcode-back" href="../../api.views.html#api.views.UserAPIView.serialize_users">[문서]</a>    <span class="k">def</span> <span class="nf">serialize_users</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;created_at&#39;</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="JWTAuthView"><a class="viewcode-back" href="../../api.views.html#api.views.JWTAuthView">[문서]</a><span class="k">class</span> <span class="nc">JWTAuthView</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+<div class="viewcode-block" id="JWTAuthView.post"><a class="viewcode-back" href="../../api.views.html#api.views.JWTAuthView.post">[문서]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">)</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="o">.</span><span class="n">check_password</span><span class="p">(</span><span class="n">raw_password</span><span class="o">=</span><span class="n">password</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">JWTManager</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;token&#39;</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="UserProfileAPIView"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView">[문서]</a><span class="k">class</span> <span class="nc">UserProfileAPIView</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;유저의 음식 취향, 소개등의 정보를 담는 UserProfile 모델을 컨트롤하는 API 입니다</span>
+
+<span class="sd">        url: /api/users/{user_id}/profile/</span>
+
+<span class="sd">        :return Dict:</span>
+<span class="sd">            - &#39;user&#39;: User</span>
+<span class="sd">            - &#39;taste&#39;: 음식 취향</span>
+<span class="sd">            - &#39;introduction&#39;: 짧은 소개</span>
+<span class="sd">            - &#39;description&#39;: 긴 소개</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="UserProfileAPIView.get_user"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView.get_user">[문서]</a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User does not exist&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span></div>
+
+    <span class="nd">@jwt_login_required</span>
+<div class="viewcode-block" id="UserProfileAPIView.post"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView.post">[문서]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저 프로파일을 생성합니다</span>
+
+<span class="sd">            :param request:</span>
+<span class="sd">                {</span>
+
+<span class="sd">                    &#39;taste&#39;: 취향(int),</span>
+
+<span class="sd">                    &#39;introduction&#39;: 짧은 소개,</span>
+
+<span class="sd">                    &#39;description&#39;: 긴 소개</span>
+
+<span class="sd">                }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+
+        <span class="n">taste</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;taste&#39;</span><span class="p">)</span>
+        <span class="n">introduction</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;introduction&#39;</span><span class="p">)</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">)</span>
+
+        <span class="n">userprofile</span> <span class="o">=</span> <span class="n">UserProfile</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+            <span class="n">taste</span><span class="o">=</span><span class="n">taste</span><span class="p">,</span>
+            <span class="n">introduction</span><span class="o">=</span><span class="n">introduction</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span>
+        <span class="p">)</span>
+
+        <span class="n">serialized_userprofile</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">serialize_userprofile</span><span class="p">([</span><span class="n">userprofile</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_userprofile</span><span class="p">)</span></div>
+
+    <span class="nd">@jwt_login_required</span>
+<div class="viewcode-block" id="UserProfileAPIView.get"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView.get">[문서]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저 프로파일을 가져옵니다</span>
+
+<span class="sd">            :param uuid user_id: 가져올 프로파일의 유저의 id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">userprofile</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">userprofile</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User profile does not exist&#39;</span><span class="p">)</span>
+
+        <span class="n">serialized_userprofile</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">serialize_userprofile</span><span class="p">([</span><span class="n">userprofile</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_userprofile</span><span class="p">)</span></div>
+
+    <span class="nd">@jwt_login_required</span>
+<div class="viewcode-block" id="UserProfileAPIView.put"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView.put">[문서]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;유저 프로파일을 변경합니다</span>
+
+<span class="sd">            :param uuid user_id: 변경할 유저의 id</span>
+
+<span class="sd">            :param request:</span>
+<span class="sd">                body에 dictionary로 변경할 파라미터, 변경할 값의 순서로 전달합니다</span>
+
+<span class="sd">                {</span>
+
+<span class="sd">                    &#39;taste&#39;: 5,</span>
+
+<span class="sd">                    &#39;introduction&#39;: &#39;안녕하세요&#39;,</span>
+
+<span class="sd">                    &#39;description&#39;: &#39;자세한 설명은 생략한다&#39;</span>
+
+<span class="sd">                }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">userprofile</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">userprofile</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+                                 <span class="n">message</span><span class="o">=</span><span class="s1">&#39;User profile does not exist&#39;</span><span class="p">)</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">userprofile</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">))</span>
+                <span class="n">userprofile</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="s1">&#39;error&#39;</span>
+        <span class="n">userprofile</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">()</span>
+
+        <span class="n">serialized_userprofile</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">serialize_userprofile</span><span class="p">([</span><span class="n">userprofile</span><span class="p">,</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">serialized_userprofile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UserProfileAPIView.serialize_userprofile"><a class="viewcode-back" href="../../api.views.html#api.views.UserProfileAPIView.serialize_userprofile">[문서]</a>    <span class="k">def</span> <span class="nf">serialize_userprofile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;taste&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;introduction&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">모듈 코드</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>빠른 검색</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="바로 가기" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Flative.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
