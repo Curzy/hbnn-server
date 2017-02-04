@@ -37,6 +37,11 @@ def to_text(string):
     return string
 
 
+def set_strict():
+    piped_process(['git', 'config', '--bool', 'flake8.strict', 'true'])
+    return None
+
+
 _HOOK_TEMPLATE = """#!{executable}
 import sys
 import os
@@ -129,6 +134,8 @@ def install():
     # so that git can actually execute it as a hook.
     pre_commit_permissions = stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH
     os.chmod(pre_commit_file, pre_commit_permissions)
+
+    set_strict()
     return True
 
 
