@@ -14,8 +14,19 @@ $ pip install -r requirements/dev.txt
 ```
 3. pre-commit 훅을 설치합니다. (flake8 코드 린터)
 ```bash
-$ flake8 --install-hook git
-$ git config --bool flake8.strict true (린터 통과시에만 커밋 완료)
+$ curl -o .git/hooks/pre-commit https://gist.githubusercontent.com/Curzy/425b6e36237c00772452f58b5154f23a/raw/10ba20d16083b5c8daa1c07109ff8a72ff80f86e/pre-commit
+```
+4. pre-commit 훅의 첫번째 줄을 자신의 python path로 설정해 줍니다.
+```pre-commit
+#!/Users/Curzy/Workspace/flative/hbnn/bin/python3.6 (여기)
+import os
+import sys
+
+...
+```
+5. 린터를 통과할때만 커밋이 되도록 합니다.
+```bash
+$ git config --bool flake8.strict true
 ```
 
 ## 실행
