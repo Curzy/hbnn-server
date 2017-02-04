@@ -12,6 +12,10 @@
 ```bash
 $ pip install -r requirements/dev.txt
 ```
+3. pre-commit 훅을 설치합니다. (flake8 코드 린터)
+```bash
+$ python pre-commit-installer.py
+```
 
 ## 실행
 
